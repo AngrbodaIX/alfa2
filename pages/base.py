@@ -24,9 +24,7 @@ class WebPage(object):
         if not item.startswith('_') and not callable(attr):
             attr._web_driver = self._web_driver
             attr._page = self
-
         return attr
-
 
     def get(self, url):
         self._web_driver.get(url)
@@ -47,15 +45,6 @@ class WebPage(object):
                          wait_for_element=None,
                          wait_for_xpath_to_disappear='',
                          sleep_time=2):
-        """ This function waits until the page will be completely loaded.
-            We use many different ways to detect is page loaded or not:
-            1) Check JS status
-            2) Check modification in source code of the page
-            3) Check that all images uploaded completely
-               (Note: this check is disabled by default)
-            4) Check that expected elements presented on the page
-        """
-
         page_loaded = False
         double_check = False
         k = 0
@@ -74,7 +63,6 @@ class WebPage(object):
         while not page_loaded:
             time.sleep(0.5)
             k += 1
-
             if check_js_complete:
                 # Scroll down and wait when page will be loaded:
                 try:
@@ -82,7 +70,6 @@ class WebPage(object):
                     page_loaded = self._web_driver.execute_script("return document.readyState == 'complete';")
                 except Exception as e:
                     pass
-
             if page_loaded and check_page_changes:
                 # Check if the page source was changed
                 new_source = ''
@@ -90,23 +77,18 @@ class WebPage(object):
                     new_source = self._web_driver.page_source
                 except:
                     pass
-
                 page_loaded = new_source == source
                 source = new_source
-
             # Wait when some element will disappear:
             if page_loaded and wait_for_xpath_to_disappear:
                 bad_element = None
-
                 try:
                     bad_element = WebDriverWait(self._web_driver, 0.1).until(
                         EC.presence_of_element_located((By.XPATH, wait_for_xpath_to_disappear))
                     )
                 except:
                     pass  # Ignore timeout errors
-
                 page_loaded = not bad_element
-
             if page_loaded and wait_for_element:
                 try:
                     page_loaded = WebDriverWait(self._web_driver, 0.1).until(
@@ -114,13 +96,10 @@ class WebPage(object):
                     )
                 except:
                     pass  # Ignore timeout errors
-
             assert k < timeout, 'The page loaded more than {0} seconds!'.format(timeout)
-
             # Check two times that page completely loaded:
             if page_loaded and not double_check:
                 page_loaded = False
                 double_check = True
-
         # Go up:
         self._web_driver.execute_script('window.scrollTo(document.body.scrollHeight, 0);')
